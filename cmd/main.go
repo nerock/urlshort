@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -11,8 +12,14 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/nerock/urlshort/docs"
 	"github.com/nerock/urlshort/server"
+	"github.com/nerock/urlshort/url"
+	urlgenerator "github.com/nerock/urlshort/url/generator"
+	urlrouter "github.com/nerock/urlshort/url/router"
+	urlstore "github.com/nerock/urlshort/url/store"
 )
 
 const (
@@ -23,12 +30,29 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
+	db, err := sql.Open("sqlite3", "urlshort.db")
+	if err != nil {
+		log.Fatal("could not establish connection with sqlite db:", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatal("could not properly close connection to sqlite db")
+		}
+	}()
+
 	httpSrv := server.NewHTTPServer(getHttpPort())
+
+	urlStore, err := urlstore.NewURLStore(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	urlService := url.NewService("", urlgenerator.URLGenerator{}, urlStore)
+	urlRouter := urlrouter.NewURLRouter(urlService)
 
 	docsRouter := docs.Router{}
 
 	go func() {
-		if err := httpSrv.Run(docsRouter); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := httpSrv.Run(urlRouter, docsRouter); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal("error running HTTP server:", err)
 		}
 	}()
