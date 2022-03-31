@@ -75,7 +75,7 @@ func main() {
 }
 
 func getHttpPort() int {
-	if portStr := os.Getenv("port"); portStr != "" {
+	if portStr := os.Getenv("PORT"); portStr != "" {
 		if port, err := strconv.Atoi(portStr); err == nil {
 			return port
 		}
@@ -85,7 +85,7 @@ func getHttpPort() int {
 }
 
 func getDomain() string {
-	if domain := os.Getenv("domain"); domain != "" {
+	if domain := os.Getenv("DOMAIN"); domain != "" {
 		return domain
 	}
 
@@ -93,7 +93,7 @@ func getDomain() string {
 }
 
 func getDBConnection() string {
-	if dbConn := os.Getenv("dbconn"); dbConn != "" {
+	if dbConn := os.Getenv("DBCONN"); dbConn != "" {
 		return dbConn
 	}
 
