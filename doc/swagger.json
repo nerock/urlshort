@@ -1,0 +1,242 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "URL Shortener API",
+    "description": "API to create short URLs that redirect to full length ones",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "description": "ID of the shortened URL"
+        }
+      ],
+      "get": {
+        "summary": "Redirect to long URL that matches this id",
+        "responses": {
+          "307": {
+            "description": "Correct redirection"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something went wrong",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "summary": "Shows API documentation",
+        "responses": {
+          "200": {
+            "description": "API documentation"
+          }
+        }
+      }
+    },
+    "/docs/swagger.json": {
+      "get": {
+        "summary": "Returns this file",
+        "responses": {
+          "200": {
+            "description": "API documentation"
+          }
+        }
+      }
+    },
+    "/api/url": {
+      "post": {
+        "summary": "Creates a new shortened URL",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/URLRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/URLResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something went wrong",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/url/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "description": "ID of the shortened URL"
+        }
+      ],
+      "get": {
+        "summary": "Returns the full URL from the short URL id",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/URLResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something went wrong",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletes a shortened URL.",
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something went wrong",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "URLRequest": {
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "URL"
+        ],
+        "example": {
+          "URL": "https://www.google.es"
+        }
+      },
+      "URLResponse": {
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          },
+          "ShortURL": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "URL": "https://www.google.es",
+          "ShortURL": "nerock.dev/MuPlT0y7R"
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "Code": {
+            "type": "string"
+          },
+          "Message": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "URL": "HTTP Error Code",
+          "ShortURL": "Error info"
+        }
+      }
+    }
+  }
+}
