@@ -1,4 +1,4 @@
-package doc
+package docs
 
 const swaggerUI = `<!DOCTYPE html>
 <html lang="en">

@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nerock/urlshort/doc"
+	"github.com/nerock/urlshort/docs"
 	"github.com/nerock/urlshort/server"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	httpSrv := server.NewHTTPServer(getHttpPort())
 
-	docsRouter := doc.Router{}
+	docsRouter := docs.Router{}
 
 	go func() {
 		if err := httpSrv.Run(docsRouter); err != nil && !errors.Is(err, http.ErrServerClosed) {
