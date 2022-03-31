@@ -14,10 +14,14 @@ type URLStore struct {
 }
 
 const (
-	createURLTable = `CREATE TABLE IF NOT EXISTS url (short TEXT NOT NULL PRIMARY KEY, long TEXT NOT NULL)`
-	createURL      = `INSERT INTO url (short, long) VALUES (?, ?)`
-	getURL         = `SELECT long FROM url WHERE short = ?`
-	deleteURL      = `DELETE FROM url WHERE short = ?`
+	createURLTable = `CREATE TABLE IF NOT EXISTS url (short TEXT NOT NULL PRIMARY KEY, long TEXT NOT NULL, count INTEGER DEFAULT 0)`
+
+	createURL = `INSERT INTO url (short, long) VALUES (?, ?)`
+	getURL    = `SELECT long FROM url WHERE short = ?`
+	deleteURL = `DELETE FROM url WHERE short = ?`
+
+	incrementRedirectionCount = `UPDATE url SET count = count + 1 WHERE short = ?`
+	getRedireciontCount       = `SELECT count FROM url WHERE short = ?`
 )
 
 func NewURLStore(db *sql.DB) (URLStore, error) {
@@ -47,7 +51,7 @@ func (u URLStore) GetURL(ctx context.Context, short string) (string, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", url.ErrNotFound
 		}
-		
+
 		return "", fmt.Errorf("parse url from database: %w", err)
 	}
 
@@ -60,4 +64,30 @@ func (u URLStore) DeleteURL(ctx context.Context, short string) error {
 	}
 
 	return nil
+}
+
+func (u URLStore) IncrementRedirectionCount(ctx context.Context, short string) error {
+	if _, err := u.db.ExecContext(ctx, incrementRedirectionCount, short); err != nil {
+		return fmt.Errorf("save url in database: %w", err)
+	}
+
+	return nil
+}
+
+func (u URLStore) GetRedirectionCount(ctx context.Context, short string) (int, error) {
+	row := u.db.QueryRowContext(ctx, getRedireciontCount, short)
+	if row.Err() != nil {
+		return 0, fmt.Errorf("get redirection count from database: %w", row.Err())
+	}
+
+	var count int
+	if err := row.Scan(&count); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, url.ErrNotFound
+		}
+
+		return 0, fmt.Errorf("parse count from database: %w", err)
+	}
+
+	return count, nil
 }
