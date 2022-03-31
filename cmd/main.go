@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nerock/urlshort/doc"
 	"github.com/nerock/urlshort/server"
 )
 
@@ -23,8 +24,11 @@ func main() {
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	httpSrv := server.NewHTTPServer(getHttpPort())
+
+	docsRouter := doc.Router{}
+
 	go func() {
-		if err := httpSrv.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := httpSrv.Run(docsRouter); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal("error running HTTP server:", err)
 		}
 	}()
