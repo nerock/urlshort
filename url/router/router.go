@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,8 @@ type URLService interface {
 	CreateURL(context.Context, string) (string, error)
 	GetURL(context.Context, string) (string, error)
 	DeleteURL(context.Context, string) error
+	IncrementRedirectionCount(context.Context, string) error
+	GetRedirectionCount(context.Context, string) (int, error)
 }
 
 type URLRequest struct {
@@ -24,6 +27,11 @@ type URLRequest struct {
 type URLResponse struct {
 	URL      string
 	ShortURL string
+}
+
+type URLCountResponse struct {
+	ID    string
+	Count int
 }
 
 type URLRouter struct {
@@ -41,6 +49,7 @@ func (ur URLRouter) Routes(r *chi.Mux) {
 		r.Route("/{id}", func(r chi.Router) {
 			r.Get("/", ur.getURL)
 			r.Delete("/", ur.deleteURL)
+			r.Get("/count", ur.getCount)
 		})
 	})
 }
@@ -59,6 +68,10 @@ func (ur URLRouter) redirectTo(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		server.RenderError(w, err, http.StatusInternalServerError)
 		return
+	}
+
+	if err := ur.urlSvc.IncrementRedirectionCount(r.Context(), id); err != nil {
+		log.Println(err)
 	}
 
 	http.Redirect(w, r, longURL, http.StatusTemporaryRedirect)
@@ -119,4 +132,23 @@ func (ur URLRouter) deleteURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (ur URLRouter) getCount(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		server.RenderError(w, errors.New("could not read id"), http.StatusBadRequest)
+	}
+
+	count, err := ur.urlSvc.GetRedirectionCount(r.Context(), id)
+	switch {
+	case errors.Is(err, url.ErrNotFound):
+		server.RenderError(w, err, http.StatusNotFound)
+		return
+	case err != nil:
+		server.RenderError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	server.RenderSuccess(w, URLCountResponse{id, count}, http.StatusCreated)
 }
