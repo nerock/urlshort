@@ -31,7 +31,7 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	db, err := sql.Open("sqlite3", "urlshort.db")
+	db, err := sql.Open("sqlite3", getDBConnection())
 	if err != nil {
 		log.Fatal("could not establish connection with sqlite db:", err)
 	}
@@ -90,4 +90,12 @@ func getDomain() string {
 	}
 
 	return fmt.Sprintf("localhost:%d/", getHttpPort())
+}
+
+func getDBConnection() string {
+	if dbConn := os.Getenv("dbconn"); dbConn != "" {
+		return dbConn
+	}
+
+	return fmt.Sprintf("urlshort.db", getHttpPort())
 }
