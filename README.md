@@ -4,7 +4,7 @@ Simple URL shortener that allows to create, retrieve and delete shortened URLs
 
 ## How to run
 ```
-go build -o urlshort cmd/main.go`
+go build -o urlshort cmd/main.go
 ./urlshort
 ```
 
