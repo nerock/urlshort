@@ -97,5 +97,5 @@ func getDBConnection() string {
 		return dbConn
 	}
 
-	return fmt.Sprintf("urlshort.db", getHttpPort())
+	return "urlshort.db"
 }
