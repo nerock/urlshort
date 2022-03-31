@@ -112,7 +112,7 @@ func (ur URLRouter) getURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.RenderSuccess(w, URLResponse{longURL, id}, http.StatusCreated)
+	server.RenderSuccess(w, URLResponse{longURL, id}, http.StatusOK)
 }
 
 func (ur URLRouter) deleteURL(w http.ResponseWriter, r *http.Request) {
@@ -150,5 +150,5 @@ func (ur URLRouter) getCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.RenderSuccess(w, URLCountResponse{id, count}, http.StatusCreated)
+	server.RenderSuccess(w, URLCountResponse{id, count}, http.StatusOK)
 }
