@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -42,4 +43,30 @@ func (s HTTPServer) Run(routers ...router) error {
 
 func (s HTTPServer) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
+}
+
+func RenderSuccess(w http.ResponseWriter, res any, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		http.Error(w, "could not encode response", http.StatusInternalServerError)
+	}
+}
+
+func RenderError(w http.ResponseWriter, err error, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
+	res := struct {
+		Code    string
+		Message string
+	}{
+		Code:    http.StatusText(code),
+		Message: err.Error(),
+	}
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		http.Error(w, "could not encode response", http.StatusInternalServerError)
+	}
 }
