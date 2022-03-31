@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	urlService := url.NewService("", urlgenerator.URLGenerator{}, urlStore)
+	urlService := url.NewService(getDomain(), urlgenerator.URLGenerator{}, urlStore)
 	urlRouter := urlrouter.NewURLRouter(urlService)
 
 	docsRouter := docs.Router{}
@@ -81,4 +82,12 @@ func getHttpPort() int {
 	}
 
 	return defaultPort
+}
+
+func getDomain() string {
+	if domain := os.Getenv("domain"); domain != "" {
+		return domain
+	}
+
+	return fmt.Sprintf("localhost:%d/", getHttpPort())
 }
