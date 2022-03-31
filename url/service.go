@@ -21,6 +21,8 @@ type Store interface {
 	AddURL(ctx context.Context, short, long string) error
 	GetURL(ctx context.Context, short string) (string, error)
 	DeleteURL(ctx context.Context, short string) error
+	IncrementRedirectionCount(ctx context.Context, short string) error
+	GetRedirectionCount(ctx context.Context, short string) (int, error)
 }
 
 type Service struct {
@@ -78,4 +80,29 @@ func (s Service) DeleteURL(ctx context.Context, short string) error {
 	}
 
 	return nil
+}
+
+func (s Service) IncrementRedirectionCount(ctx context.Context, short string) error {
+	if err := s.store.IncrementRedirectionCount(ctx, short); err != nil {
+		if err == ErrNotFound {
+			return ErrNotFound
+		}
+
+		return fmt.Errorf("could not delete URL from database: %w", err)
+	}
+
+	return nil
+}
+
+func (s Service) GetRedirectionCount(ctx context.Context, short string) (int, error) {
+	count, err := s.store.GetRedirectionCount(ctx, short)
+	if err != nil {
+		if err == ErrNotFound {
+			return 0, ErrNotFound
+		}
+
+		return 0, fmt.Errorf("could not get URL redirection count from database: %w", err)
+	}
+
+	return count, nil
 }
