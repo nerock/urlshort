@@ -13,10 +13,12 @@ var (
 	ErrNotFound   = errors.New("URL not found")
 )
 
+// Generator is the interface for a short id generator
 type Generator interface {
 	Generate() (string, error)
 }
 
+// Store is the interface for a storage engine for urls
 type Store interface {
 	AddURL(ctx context.Context, short, long string) error
 	GetURL(ctx context.Context, short string) (string, error)
@@ -25,6 +27,7 @@ type Store interface {
 	GetRedirectionCount(ctx context.Context, short string) (int, error)
 }
 
+// Service manages shortened urls
 type Service struct {
 	store     Store
 	generator Generator
@@ -32,6 +35,7 @@ type Service struct {
 	domain string
 }
 
+// NewService creates a Service to manage shortened urls
 func NewService(domain string, urlGenerator Generator, store Store) Service {
 	return Service{
 		domain:    domain,
@@ -40,6 +44,7 @@ func NewService(domain string, urlGenerator Generator, store Store) Service {
 	}
 }
 
+// CreateURL creates a shortened url
 func (s Service) CreateURL(ctx context.Context, long string) (string, error) {
 	if _, err := url.ParseRequestURI(long); err != nil {
 		return "", ErrInvalidURL
@@ -57,19 +62,21 @@ func (s Service) CreateURL(ctx context.Context, long string) (string, error) {
 	return path.Join(s.domain, short), nil
 }
 
-func (s Service) GetURL(ctx context.Context, short string) (string, error) {
+// GetURL gets a long url from the short url id
+func (s Service) GetURL(ctx context.Context, short string) (string, string, error) {
 	long, err := s.store.GetURL(ctx, short)
 	if err != nil {
 		if err == ErrNotFound {
-			return "", ErrNotFound
+			return "", "", ErrNotFound
 		}
 
-		return "", fmt.Errorf("could not retrieve URL from database: %w", err)
+		return "", "", fmt.Errorf("could not retrieve URL from database: %w", err)
 	}
 
-	return long, nil
+	return long, path.Join(s.domain, short), nil
 }
 
+// DeleteURL deletes an url
 func (s Service) DeleteURL(ctx context.Context, short string) error {
 	if err := s.store.DeleteURL(ctx, short); err != nil {
 		if err == ErrNotFound {
@@ -82,6 +89,7 @@ func (s Service) DeleteURL(ctx context.Context, short string) error {
 	return nil
 }
 
+// IncrementRedirectionCount increments the redirection count of a shortened url
 func (s Service) IncrementRedirectionCount(ctx context.Context, short string) error {
 	if err := s.store.IncrementRedirectionCount(ctx, short); err != nil {
 		if err == ErrNotFound {
@@ -94,6 +102,7 @@ func (s Service) IncrementRedirectionCount(ctx context.Context, short string) er
 	return nil
 }
 
+// GetRedirectionCount gets the count of redirections of a shortened url
 func (s Service) GetRedirectionCount(ctx context.Context, short string) (int, error) {
 	count, err := s.store.GetRedirectionCount(ctx, short)
 	if err != nil {

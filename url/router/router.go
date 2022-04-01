@@ -12,36 +12,43 @@ import (
 	"github.com/nerock/urlshort/url"
 )
 
+// URLService is the interface for the url service this router will use
 type URLService interface {
 	CreateURL(context.Context, string) (string, error)
-	GetURL(context.Context, string) (string, error)
+	GetURL(context.Context, string) (string, string, error)
 	DeleteURL(context.Context, string) error
 	IncrementRedirectionCount(context.Context, string) error
 	GetRedirectionCount(context.Context, string) (int, error)
 }
 
+// URLRequest is the request to create a new URL
 type URLRequest struct {
 	URL string
 }
 
+// URLResponse is the response with the details of a shortened url
 type URLResponse struct {
 	URL      string
 	ShortURL string
 }
 
+// URLCountResponse is the response with the details of the count of redirections of a shortener url
 type URLCountResponse struct {
 	ID    string
 	Count int
 }
 
+// URLRouter is the router for url endpoints
 type URLRouter struct {
 	urlSvc URLService
 }
 
+// NewURLRouter initializes a new URLRouter
 func NewURLRouter(urlSvc URLService) URLRouter {
 	return URLRouter{urlSvc: urlSvc}
 }
 
+// Routes adds url routes to the main router
 func (ur URLRouter) Routes(r *chi.Mux) {
 	r.Get("/{id}", ur.redirectTo)
 	r.Route("/api/url", func(r chi.Router) {
@@ -60,7 +67,7 @@ func (ur URLRouter) redirectTo(w http.ResponseWriter, r *http.Request) {
 		server.RenderError(w, errors.New("could not read id"), http.StatusBadRequest)
 	}
 
-	longURL, err := ur.urlSvc.GetURL(r.Context(), id)
+	longURL, _, err := ur.urlSvc.GetURL(r.Context(), id)
 	switch {
 	case errors.Is(err, url.ErrNotFound):
 		server.RenderError(w, err, http.StatusNotFound)
@@ -102,7 +109,7 @@ func (ur URLRouter) getURL(w http.ResponseWriter, r *http.Request) {
 		server.RenderError(w, errors.New("could not read id"), http.StatusBadRequest)
 	}
 
-	longURL, err := ur.urlSvc.GetURL(r.Context(), id)
+	longURL, shortURL, err := ur.urlSvc.GetURL(r.Context(), id)
 	switch {
 	case errors.Is(err, url.ErrNotFound):
 		server.RenderError(w, err, http.StatusNotFound)
@@ -112,7 +119,7 @@ func (ur URLRouter) getURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.RenderSuccess(w, URLResponse{longURL, id}, http.StatusOK)
+	server.RenderSuccess(w, URLResponse{longURL, shortURL}, http.StatusOK)
 }
 
 func (ur URLRouter) deleteURL(w http.ResponseWriter, r *http.Request) {

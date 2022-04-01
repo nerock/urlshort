@@ -1,6 +1,7 @@
 package docs
 
-const swaggerUI = `<!DOCTYPE html>
+// SwaggerUI is the base Swagger UI HTML
+const SwaggerUI = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
