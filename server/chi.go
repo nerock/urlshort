@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -41,6 +42,8 @@ func (s HTTPServer) Run(routers ...Router) error {
 	for _, r := range routers {
 		r.Routes(s.router)
 	}
+
+	log.Println("Running HTTP server on:", s.srv.Addr)
 
 	return s.srv.ListenAndServe()
 }

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	"google.golang.org/grpc"
@@ -35,6 +36,8 @@ func (g Server) RunServer(port int, ) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %s", err)
 	}
+
+	log.Println("Running gRPC server on:", port)
 
 	return g.srv.Serve(lis)
 }
