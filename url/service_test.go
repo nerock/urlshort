@@ -23,8 +23,9 @@ func (t testGenerator) Generate() (string, error) {
 }
 
 type testStore struct {
-	url string
-	err error
+	url   string
+	err   error
+	count int
 }
 
 func (t testStore) AddURL(ctx context.Context, short, long string) error {
@@ -37,6 +38,14 @@ func (t testStore) GetURL(ctx context.Context, short string) (string, error) {
 
 func (t testStore) DeleteURL(ctx context.Context, short string) error {
 	return t.err
+}
+
+func (t testStore) IncrementRedirectionCount(ctx context.Context, short string) error {
+	return t.err
+}
+
+func (t testStore) GetRedirectionCount(ctx context.Context, short string) (int, error) {
+	return t.count, t.err
 }
 
 func TestCreate(t *testing.T) {
@@ -185,6 +194,76 @@ func TestDelete(t *testing.T) {
 
 			if !errors.Is(err, tt.err) {
 				t.Errorf("wrong error returned\nexpected=%s\ngot=%s", tt.err, err)
+			}
+		})
+	}
+}
+
+func TestIncrementCount(t *testing.T) {
+	tests := map[string]struct {
+		store testStore
+
+		err error
+	}{
+		"store error": {
+			store: testStore{
+				err: errStore,
+			},
+			err: errStore,
+		},
+		"success": {
+			err: nil,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := url.NewService("", nil, tt.store)
+			err := svc.IncrementRedirectionCount(context.Background(), "")
+
+			if !errors.Is(err, tt.err) {
+				t.Errorf("wrong error returned\nexpected=%s\ngot=%s", tt.err, err)
+			}
+		})
+	}
+}
+
+func TestGetCount(t *testing.T) {
+	count := 100
+
+	tests := map[string]struct {
+		store testStore
+
+		short string
+
+		count int
+		err   error
+	}{
+		"store error": {
+			store: testStore{
+				err: errStore,
+			},
+			err: errStore,
+		},
+		"success": {
+			store: testStore{
+				count: count,
+			},
+			count: count,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := url.NewService("", nil, tt.store)
+			count, err := svc.GetRedirectionCount(context.Background(), "")
+
+			if !errors.Is(err, tt.err) {
+				t.Errorf("wrong error returned\nexpected=%s\ngot=%s", tt.err, err)
+			}
+
+			if count != tt.count {
+				t.Errorf("wrong id returned\nexpected=%d\ngot=%d", tt.count, count)
 			}
 		})
 	}

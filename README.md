@@ -2,6 +2,9 @@
 
 Simple URL shortener that allows to create, retrieve and delete shortened URLs
 
+## Demo
+Try the [demo](https://nerock.dev/docs)
+
 ## How to run
 ```
 go build -o urlshort cmd/main.go
