@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "github.com/nerock/urlshort/grpc/proto";
+
+package urlshort;
+
+// The greeting service definition.
+service UrlShortener {
+  rpc CreateURL (CreateURLRequest) returns (URLResponse) {}
+  rpc GetURL (URLRequest) returns (URLResponse) {}
+  rpc DeleteURL (URLRequest) returns (DeleteURLResponse) {}
+  rpc GetRedirectionCount (URLRequest) returns (RedirectionCountResponse) {}
+}
+
+// The request message containing the user's name.
+message CreateURLRequest {
+  string url = 1;
+}
+
+message URLRequest {
+  string id = 1;
+}
+
+message URLResponse {
+  string url = 1;
+  string shortUrl = 2;
+}
+
+message DeleteURLResponse {
+  bool ok = 1;
+}
+
+message RedirectionCountResponse {
+  string id = 1;
+  int32 count = 2;
+}
