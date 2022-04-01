@@ -6,9 +6,16 @@ Simple URL shortener that allows to create, retrieve and delete shortened URLs
 Try the [demo](https://nerock.dev/api/docs)
 
 ## How to run
+### Local
 ```
 go build -o urlshort cmd/main.go
 ./urlshort
+```
+### Docker
+Exposed ports can be changed in Dockerfile
+```
+docker build -t urlshort .
+docker run -p 8080:8080 -p 50051:50051 urlshort
 ```
 
 ## Rebuild gRPC definitions
