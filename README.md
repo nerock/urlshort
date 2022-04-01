@@ -4,6 +4,23 @@ Simple URL shortener that allows to create, retrieve and delete shortened URLs
 
 ## Demo
 Try the [demo](https://nerock.dev/api/docs)
+### gRPC client example
+```
+ctx := context.Background()
+conn, err := client.NewURLClient(ctx, "nerock.dev:50051")
+if err != nil {
+    log.Fatal(err)
+}
+defer conn.Close()
+
+long, short, err := conn.CreateURL(ctx, "https://github.com/nerock")
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Long url: %s\nShort url: %s\n", long, short)
+```
+
 
 ## How to run
 ### Local
