@@ -21,9 +21,10 @@ const (
 	deleteURL = `DELETE FROM url WHERE short = ?`
 
 	incrementRedirectionCount = `UPDATE url SET count = count + 1 WHERE short = ?`
-	getRedireciontCount       = `SELECT count FROM url WHERE short = ?`
+	getRedirectiontCount      = `SELECT count FROM url WHERE short = ?`
 )
 
+// NewURLStore instantiates a new url store with sqlite
 func NewURLStore(db *sql.DB) (URLStore, error) {
 	if _, err := db.Exec(createURLTable); err != nil {
 		return URLStore{}, fmt.Errorf("could not create url table: %w", err)
@@ -32,6 +33,7 @@ func NewURLStore(db *sql.DB) (URLStore, error) {
 	return URLStore{db}, nil
 }
 
+// AddURL saves a new url
 func (u URLStore) AddURL(ctx context.Context, short, long string) error {
 	if _, err := u.db.ExecContext(ctx, createURL, short, long); err != nil {
 		return fmt.Errorf("save url in database: %w", err)
@@ -40,6 +42,7 @@ func (u URLStore) AddURL(ctx context.Context, short, long string) error {
 	return nil
 }
 
+// GetURL gets a long url from the id
 func (u URLStore) GetURL(ctx context.Context, short string) (string, error) {
 	row := u.db.QueryRowContext(ctx, getURL, short)
 	if row.Err() != nil {
@@ -58,6 +61,7 @@ func (u URLStore) GetURL(ctx context.Context, short string) (string, error) {
 	return long, nil
 }
 
+// DeleteURL deletes an url from the id
 func (u URLStore) DeleteURL(ctx context.Context, short string) error {
 	if _, err := u.db.ExecContext(ctx, deleteURL, short); err != nil {
 		return fmt.Errorf("delete url from database: %w", err)
@@ -66,6 +70,7 @@ func (u URLStore) DeleteURL(ctx context.Context, short string) error {
 	return nil
 }
 
+// IncrementRedirectionCount increments the count by one
 func (u URLStore) IncrementRedirectionCount(ctx context.Context, short string) error {
 	if _, err := u.db.ExecContext(ctx, incrementRedirectionCount, short); err != nil {
 		return fmt.Errorf("save url in database: %w", err)
@@ -74,8 +79,9 @@ func (u URLStore) IncrementRedirectionCount(ctx context.Context, short string) e
 	return nil
 }
 
+// GetRedirectionCount gets the count of a url
 func (u URLStore) GetRedirectionCount(ctx context.Context, short string) (int, error) {
-	row := u.db.QueryRowContext(ctx, getRedireciontCount, short)
+	row := u.db.QueryRowContext(ctx, getRedirectiontCount, short)
 	if row.Err() != nil {
 		return 0, fmt.Errorf("get redirection count from database: %w", row.Err())
 	}
