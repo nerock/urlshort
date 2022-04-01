@@ -32,9 +32,11 @@ const (
 )
 
 func main() {
+	// Quit app signal notifier
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
+	// DB Connection
 	db, err := sql.Open("sqlite3", getDBConnection())
 	if err != nil {
 		log.Fatal("could not establish connection with sqlite db:", err)
@@ -45,6 +47,7 @@ func main() {
 		}
 	}()
 
+	// Services startup
 	urlStore, err := urlstore.NewURLStore(db)
 	if err != nil {
 		log.Fatal(err)
@@ -55,6 +58,7 @@ func main() {
 
 	docsRouter := docs.Router{}
 
+	// Servers startup
 	httpSrv := server.NewHTTPServer(getHttpPort())
 	grpcSrv := grpc.NewGRPCServer(urlGrpc)
 	go func() {
@@ -69,6 +73,7 @@ func main() {
 		}
 	}()
 
+	// Wait for quit signal
 	<-sig
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	go func() {
@@ -81,6 +86,7 @@ func main() {
 		cancel()
 	}()
 
+	// Force quit if deadline exceeded
 	<-ctx.Done()
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Fatal("timeout gracefully shutting down")
